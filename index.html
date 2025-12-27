@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>My Gym Tracker Pro</title>
+    <title>My Gym Tracker (v3.2)</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
 
     <style>
+        /* --- 樣式系統 (維持 v3 系列的高質感設計) --- */
         :root {
             --primary: #2C3E50; --primary-light: #34495E;
             --accent: #F39C12; --success: #27AE60; --danger: #E74C3C; 
@@ -26,88 +27,57 @@
         /* Layout */
         .app-container { max-width: 500px; margin: 0 auto; background: var(--bg-body); height: 100vh; display: flex; flex-direction: column; position: relative; }
 
-        /* Toast */
+        /* Components */
         .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; width: 90%; max-width: 400px; }
-        .toast { background: rgba(44, 62, 80, 0.95); color: white; padding: 12px 20px; border-radius: 50px; margin-bottom: 10px; text-align: center; font-weight: 500; font-size: 0.9rem; box-shadow: var(--shadow-float); opacity: 0; transform: translateY(-20px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(5px); }
+        .toast { background: rgba(44, 62, 80, 0.95); color: white; padding: 12px 20px; border-radius: 50px; margin-bottom: 10px; text-align: center; font-weight: 500; font-size: 0.9rem; box-shadow: var(--shadow-float); opacity: 0; transform: translateY(-20px); transition: all 0.3s; backdrop-filter: blur(5px); }
         .toast.show { opacity: 1; transform: translateY(0); }
 
-        /* Timer Overlay (New Feature) */
-        .timer-float {
-            position: absolute; bottom: 80px; left: 20px; right: 20px;
-            background: rgba(44, 62, 80, 0.95); color: white;
-            padding: 15px; border-radius: var(--radius-lg);
-            display: flex; align-items: center; justify-content: space-between;
-            box-shadow: var(--shadow-float); z-index: 50;
-            backdrop-filter: blur(10px);
-            animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .timer-float.hidden { display: none; }
-        .timer-display { font-variant-numeric: tabular-nums; font-size: 1.5rem; font-weight: 700; color: var(--accent); }
-        .timer-controls { display: flex; gap: 10px; }
-        .btn-timer { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; }
-        .btn-timer:active { background: rgba(255,255,255,0.4); }
-
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* Header */
         header { padding: 15px 20px; padding-top: max(15px, env(safe-area-inset-top)); background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 0 rgba(0,0,0,0.05); z-index: 10; }
         .header-title h1 { font-size: 1.4rem; margin: 0; letter-spacing: -0.5px; }
         .header-subtitle { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
 
-        /* Main */
         main { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px; scroll-behavior: smooth; }
         main::-webkit-scrollbar { display: none; }
 
-        /* UI Elements */
         .card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-card); border: 1px solid rgba(0,0,0,0.02); }
         .form-label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
         .input-group { display: flex; gap: 12px; }
         .input-wrapper { flex: 1; }
         input[type="number"], input[type="date"], input[type="text"], select { width: 100%; padding: 14px; border: 2px solid #EFF2F5; background: #EFF2F5; border-radius: var(--radius-md); font-size: 1.1rem; font-weight: 600; color: var(--text-main); outline: none; text-align: center; -webkit-appearance: none; }
         input:focus, select:focus { border-color: var(--primary); background: #fff; }
-        
-        input[type=range] { width: 100%; -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: var(--primary); margin-top: -10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #ddd; border-radius: 2px; }
+        input[type=range] { width: 100%; }
 
         .btn-main { width: 100%; background: var(--primary); color: white; padding: 16px; border: none; border-radius: var(--radius-lg); font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2); display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-secondary { width: 100%; background: white; color: var(--primary); border: 2px solid #EFF2F5; padding: 14px; border-radius: var(--radius-lg); font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+        .btn-secondary { width: 100%; background: white; color: var(--primary); border: 2px solid #EFF2F5; padding: 14px; border-radius: var(--radius-lg); font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 10px; display:flex; justify-content:center; align-items:center; gap:8px;}
         .btn-icon { background: none; border: 1px solid #eee; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--text-muted); }
-
-        .filter-scroller { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
-        .filter-scroller::-webkit-scrollbar { display: none; }
-        .chip { white-space: nowrap; padding: 8px 16px; border-radius: 20px; background: #fff; border: 1px solid #eee; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
-        .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-        .stat-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
-        .stat-badge.pb { background: #FFF3E0; color: #E67E22; }
-        .stat-badge.type { background: #EFF2F5; color: #7F8C8D; }
-
-        .side-toggle { display: flex; background: #EFF2F5; padding: 4px; border-radius: var(--radius-md); margin-bottom: 15px; }
-        .side-btn { flex: 1; text-align: center; padding: 10px; border-radius: var(--radius-sm); font-weight: 600; color: var(--text-muted); transition: 0.2s; }
-        .side-btn.active.L { background: #fff; color: var(--success); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .side-btn.active.R { background: #fff; color: var(--danger); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-
-        .chart-wrapper { width: 100%; height: 220px; position: relative; }
-        .chart-svg { width: 100%; height: 100%; overflow: visible; }
-
-        .bottom-nav { background: #fff; border-top: 1px solid #eee; display: grid; grid-template-columns: repeat(4, 1fr); padding-bottom: env(safe-area-inset-bottom); position: sticky; bottom: 0; z-index: 40; }
-        .nav-item { padding: 12px 0; text-align: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-icon { font-size: 1.2rem; margin-bottom: 2px; }
-        .nav-item.active { color: var(--primary); }
 
         .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* History Items */
-        .history-date { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin: 20px 0 10px 5px; }
+        /* Timer UI */
+        .timer-float { position: absolute; bottom: 80px; left: 20px; right: 20px; background: rgba(44, 62, 80, 0.95); color: white; padding: 15px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-float); z-index: 50; backdrop-filter: blur(10px); }
+        .timer-display { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+
+        /* Specific styles for v3.x features */
+        .filter-scroller { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
+        .filter-scroller::-webkit-scrollbar { display: none; }
+        .chip { padding: 8px 16px; border-radius: 20px; background: #fff; border: 1px solid #eee; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; white-space: nowrap;}
+        .chip.active { background: var(--primary); color: #fff; }
+        .stat-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .stat-badge.pb { background: #FFF3E0; color: #E67E22; }
+        .stat-badge.type { background: #EFF2F5; color: #7F8C8D; }
+        .side-toggle { display: flex; background: #EFF2F5; padding: 4px; border-radius: var(--radius-md); margin-bottom: 15px; }
+        .side-btn { flex: 1; text-align: center; padding: 10px; border-radius: var(--radius-sm); font-weight: 600; color: var(--text-muted); }
+        .side-btn.active.L { background: #fff; color: var(--success); }
+        .side-btn.active.R { background: #fff; color: var(--danger); }
+        
+        .bottom-nav { background: #fff; border-top: 1px solid #eee; display: grid; grid-template-columns: repeat(4, 1fr); padding-bottom: env(safe-area-inset-bottom); position: sticky; bottom: 0; z-index: 40; }
+        .nav-item { padding: 12px 0; text-align: center; color: var(--text-muted); font-size: 0.75rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item.active { color: var(--primary); }
+
         .log-item { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .log-item:last-child { border-bottom: none; }
-        .log-tag { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; margin-right: 8px;}
-        .log-l { background: #E8F8F5; color: var(--success); }
-        .log-r { background: #FDEDEC; color: var(--danger); }
+        .chart-wrapper { width: 100%; height: 220px; position: relative; }
     </style>
 </head>
 <body>
@@ -138,12 +108,7 @@
                     <span id="ex-type-badge" class="stat-badge type">雙邊</span>
                     <span id="pb-display" class="stat-badge pb">🏆 PB: --</span>
                 </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label class="form-label">日期</label>
-                    <input type="date" id="input-date">
-                </div>
-
+                <div style="margin-bottom: 15px;"><label class="form-label">日期</label><input type="date" id="input-date"></div>
                 <div id="side-selector" class="hidden">
                     <label class="form-label">側邊</label>
                     <div class="side-toggle">
@@ -151,28 +116,16 @@
                         <div class="side-btn" id="opt-right" onclick="setSide('Right')">右 (R)</div>
                     </div>
                 </div>
-
                 <div class="input-group" style="margin-bottom: 15px;">
-                    <div class="input-wrapper">
-                        <label class="form-label">重量 (kg)</label>
-                        <input type="number" id="input-weight" placeholder="0" inputmode="decimal" step="0.5">
-                    </div>
-                    <div class="input-wrapper">
-                        <label class="form-label">次數 (Reps)</label>
-                        <input type="number" id="input-reps" placeholder="0" inputmode="numeric">
-                    </div>
+                    <div class="input-wrapper"><label class="form-label">重量 (kg)</label><input type="number" id="input-weight" placeholder="0" inputmode="decimal" step="0.5"></div>
+                    <div class="input-wrapper"><label class="form-label">次數 (Reps)</label><input type="number" id="input-reps" placeholder="0" inputmode="numeric"></div>
                 </div>
-
                 <div style="margin-bottom: 25px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <label class="form-label">強度 (RPE: <span id="rpe-val" style="color:var(--primary);">7</span>)</label>
-                    </div>
+                    <label class="form-label">RPE: <span id="rpe-val">7</span></label>
                     <input type="range" id="input-rpe" min="1" max="10" value="7" oninput="document.getElementById('rpe-val').innerText = this.value">
                 </div>
-
                 <button class="btn-main" onclick="addLog()"><span>✅ 完成這組</span></button>
             </div>
-
             <div id="balance-card" class="card hidden" style="background: #FFF8E1; border: 1px solid #FFE0B2;">
                 <h3 style="font-size: 1rem; color: #F39C12; margin: 0 0 5px 0;">⚖️ 平衡偵測</h3>
                 <p id="balance-msg" style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.4;"></p>
@@ -181,25 +134,13 @@
 
         <div id="view-stats" class="hidden fade-in">
             <div class="card">
-                <h3 style="margin-top:0;">⚖️ 體重追蹤</h3>
-                <div class="input-group" style="align-items: flex-end;">
-                    <div class="input-wrapper"><label class="form-label">日期</label><input type="date" id="body-date"></div>
-                    <div class="input-wrapper"><label class="form-label">公斤</label><input type="number" id="body-w" placeholder="0.0" step="0.1" inputmode="decimal"></div>
-                    <button class="btn-main" style="width: auto; padding: 14px 20px;" onclick="addBodyLog()">➕</button>
-                </div>
+                <h3>⚖️ 體重追蹤</h3>
+                <div class="input-group"><div class="input-wrapper"><input type="date" id="body-date"></div><div class="input-wrapper"><input type="number" id="body-w" placeholder="0.0"></div><button class="btn-main" style="width:auto;" onclick="addBodyLog()">➕</button></div>
             </div>
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0;">趨勢圖</h3>
-                    <span id="latest-w" style="font-size:1.2rem; font-weight:bold; color:var(--primary);">-- kg</span>
-                </div>
-                <div class="chart-wrapper" id="chart-weight-container"></div>
-            </div>
+            <div class="card"><div class="chart-wrapper" id="chart-weight-container"></div></div>
         </div>
 
-        <div id="view-history" class="hidden fade-in">
-            <div id="history-list" style="padding-bottom: 20px;"></div>
-        </div>
+        <div id="view-history" class="hidden fade-in"><div id="history-list"></div></div>
 
         <div id="view-profile" class="hidden fade-in">
             <div class="card">
@@ -208,18 +149,27 @@
                     <label class="form-label">顯示名稱</label>
                     <input type="text" id="p-name" placeholder="輸入你的暱稱">
                 </div>
+                
+                <div style="margin: 20px 0;">
+                    <label class="form-label">預設休息時間 (秒)</label>
+                    <div class="input-group">
+                        <input type="number" id="p-timer" placeholder="90" inputmode="numeric">
+                        <div style="display:flex; align-items:center; padding-left:10px; font-weight:bold; color:#ccc;">Sec</div>
+                    </div>
+                </div>
+
                 <button class="btn-main" onclick="saveProfile()">💾 儲存設定</button>
                 
                 <hr style="border:0; border-top:1px solid #eee; margin: 25px 0;">
                 
                 <h3>📤 資料管理</h3>
-                <p style="font-size:0.85rem; color:#888;">建議定期備份你的訓練資料。</p>
-                <button class="btn-secondary" onclick="exportCSV()">📥 匯出 CSV (Excel)</button>
-                
+                <button class="btn-secondary" onclick="exportJSON()"><span>☁️ 備份資料 (JSON)</span></button>
+                <button class="btn-secondary" style="background:#FFF3E0; border-color:#FFE0B2; color:#E67E22;" onclick="document.getElementById('import-file').click()"><span>📲 還原資料 (JSON)</span></button>
+                <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(this)">
+                <button class="btn-secondary" style="margin-top:10px;" onclick="exportCSV()">📥 匯出 Excel (CSV)</button>
+
                 <hr style="border:0; border-top:1px solid #eee; margin: 25px 0;">
-                
-                <h3 style="color:var(--danger); font-size:1rem;">危險區域</h3>
-                <button class="btn-icon" style="color:var(--danger); border-color:var(--danger); width:100%; padding:12px;" onclick="resetApp()">⚠️ 重置所有資料</button>
+                <button class="btn-secondary" style="color:var(--danger); border-color:var(--danger);" onclick="resetApp()">⚠️ 重置所有資料</button>
             </div>
         </div>
     </main>
@@ -229,25 +179,23 @@
             <span style="font-size:0.8rem; font-weight:bold;">⏳ 休息</span>
             <span id="timer-val" class="timer-display">01:30</span>
         </div>
-        <div class="timer-controls">
-            <button class="btn-timer" onclick="adjustTimer(30)">+30s</button>
-            <button class="btn-timer" style="background:rgba(231,76,60,0.8);" onclick="stopTimer()">✖</button>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-secondary" style="padding:4px 10px; margin:0; font-size:0.8rem;" onclick="adjustTimer(30)">+30s</button>
+            <button class="btn-secondary" style="padding:4px 10px; margin:0; font-size:0.8rem; background:rgba(231,76,60,0.8); color:white; border:none;" onclick="stopTimer()">✖</button>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" id="nav-logger" onclick="switchView('logger')"><div class="nav-icon">🏋️</div>訓練</div>
-        <div class="nav-item" id="nav-stats" onclick="switchView('stats')"><div class="nav-icon">📈</div>體重</div>
-        <div class="nav-item" id="nav-history" onclick="switchView('history')"><div class="nav-icon">📅</div>日誌</div>
-        <div class="nav-item" id="nav-profile" onclick="switchView('profile')"><div class="nav-icon">👤</div>設定</div>
+        <div class="nav-item active" id="nav-logger" onclick="switchView('logger')">🏋️ 訓練</div>
+        <div class="nav-item" id="nav-stats" onclick="switchView('stats')">📈 體重</div>
+        <div class="nav-item" id="nav-history" onclick="switchView('history')">📅 日誌</div>
+        <div class="nav-item" id="nav-profile" onclick="switchView('profile')">👤 設定</div>
     </nav>
 </div>
 
 <script>
-    /* --- CONFIG & STATE --- */
     const APP_VERSION = 'v3_0';
     const DB_KEYS = { LOGS: `gym_logs_${APP_VERSION}`, BODY: `gym_body_${APP_VERSION}`, PROFILE: `gym_profile_${APP_VERSION}` };
-    
     const exerciseDB = [
         { id: 'row_db', name: '單臂啞鈴划船', part: '背部', type: 'Unilateral' },
         { id: 'lat_pull', name: '滑輪下拉', part: '背部', type: 'Bilateral' },
@@ -269,212 +217,176 @@
     ];
     const bodyParts = ['全部', '背部', '胸部', '腿部', '肩膀', '手臂', '核心'];
     
+    // Default Profile now includes defaultTimer
     let state = {
         logs: JSON.parse(localStorage.getItem(DB_KEYS.LOGS)) || [],
         bodyLogs: JSON.parse(localStorage.getItem(DB_KEYS.BODY)) || [],
-        profile: JSON.parse(localStorage.getItem(DB_KEYS.PROFILE)) || { name: 'Champ' },
-        currentEx: exerciseDB[0],
-        currentSide: null,
-        filter: '全部'
+        profile: JSON.parse(localStorage.getItem(DB_KEYS.PROFILE)) || { name: 'Champ', defaultTimer: 90 },
+        currentEx: exerciseDB[0], currentSide: null, filter: '全部'
     };
-    
-    // Timer Variables
-    let timerInterval = null;
-    let timerSeconds = 0;
+    let timerInterval = null, timerSeconds = 0;
 
-    /* --- INIT --- */
     function init() {
         renderFilters(); renderDropdown(); updateExerciseUI(); loadProfileUI(); setTodayDateInputs();
         switchView('logger');
-        const chartObserver = new ResizeObserver(() => {
-            if(!document.getElementById('view-stats').classList.contains('hidden')) renderWeightChart();
-        });
-        chartObserver.observe(document.getElementById('chart-weight-container'));
+        new ResizeObserver(() => { if(!document.getElementById('view-stats').classList.contains('hidden')) renderWeightChart(); }).observe(document.getElementById('chart-weight-container'));
     }
 
-    /* --- UX: TOAST & TIMER --- */
-    function showToast(msg, type = 'success') {
-        const box = document.getElementById('toast-box');
-        const el = document.createElement('div');
-        el.className = 'toast'; el.innerText = msg;
-        if(type === 'error') el.style.background = 'rgba(231, 76, 60, 0.95)';
-        box.appendChild(el);
-        requestAnimationFrame(() => { el.classList.add('show'); setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, 2500); });
+    /* --- IMPORT / EXPORT LOGIC --- */
+    function exportJSON() {
+        if(state.logs.length === 0 && state.bodyLogs.length === 0) { showToast("沒有資料可備份", "error"); return; }
+        const backupData = { version: APP_VERSION, timestamp: new Date().toISOString(), profile: state.profile, logs: state.logs, bodyLogs: state.bodyLogs };
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], {type: 'application/json'});
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `gym_backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link); showToast("備份檔已下載");
     }
-
-    // New Feature: Rest Timer Logic
-    function startTimer(sec = 90) {
-        clearInterval(timerInterval);
-        timerSeconds = sec;
-        const overlay = document.getElementById('timer-overlay');
-        overlay.classList.remove('hidden');
-        updateTimerDisplay();
+    function handleImport(input) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if(!importedData.logs || !Array.isArray(importedData.logs)) throw new Error("格式錯誤");
+                if(confirm(`確定要匯入 ${importedData.logs.length} 筆紀錄？`)) mergeData(importedData);
+            } catch (err) { alert("匯入失敗：" + err.message); }
+            input.value = ''; 
+        }; reader.readAsText(file);
+    }
+    function mergeData(imported) {
+        const logMap = new Map(state.logs.map(l => [l.id, l])); let newLogsCount = 0;
+        imported.logs.forEach(l => { if(!logMap.has(l.id)) { logMap.set(l.id, l); newLogsCount++; } });
+        state.logs = Array.from(logMap.values()).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
         
-        timerInterval = setInterval(() => {
-            timerSeconds--;
-            if(timerSeconds <= 0) {
-                stopTimer();
-                showToast("⏰ 休息結束，下一組！");
-                // 震動回饋 (如果裝置支援)
-                if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            } else {
-                updateTimerDisplay();
-            }
-        }, 1000);
-    }
-    
-    function stopTimer() {
-        clearInterval(timerInterval);
-        document.getElementById('timer-overlay').classList.add('hidden');
-    }
-    
-    function adjustTimer(addSec) {
-        timerSeconds += addSec;
-        updateTimerDisplay();
-    }
-    
-    function updateTimerDisplay() {
-        const m = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
-        const s = (timerSeconds % 60).toString().padStart(2, '0');
-        document.getElementById('timer-val').innerText = `${m}:${s}`;
+        const bodyMap = new Map(state.bodyLogs.map(b => [b.date, b]));
+        imported.bodyLogs.forEach(b => bodyMap.set(b.date, b));
+        state.bodyLogs = Array.from(bodyMap.values()).sort((a,b) => new Date(a.date) - new Date(b.date));
+
+        if(imported.profile) state.profile = imported.profile;
+
+        localStorage.setItem(DB_KEYS.LOGS, JSON.stringify(state.logs));
+        localStorage.setItem(DB_KEYS.BODY, JSON.stringify(state.bodyLogs));
+        localStorage.setItem(DB_KEYS.PROFILE, JSON.stringify(state.profile));
+        
+        loadProfileUI(); updateExerciseUI(); showToast(`匯入成功！`);
     }
 
-    /* --- CORE LOGIC --- */
-    function renderFilters() {
-        document.getElementById('part-filters').innerHTML = bodyParts.map(part => `<button class="chip ${part === state.filter ? 'active' : ''}" onclick="setFilter('${part}')">${part}</button>`).join('');
+    /* --- APP LOGIC --- */
+    function showToast(msg, type='success') {
+        const box = document.getElementById('toast-box'); const el = document.createElement('div'); el.className='toast show'; el.innerText=msg;
+        if(type==='error') el.style.background='rgba(231,76,60,0.95)';
+        box.appendChild(el); setTimeout(()=>el.remove(), 2500);
     }
+
+    function startTimer(sec) {
+        clearInterval(timerInterval); timerSeconds = sec;
+        document.getElementById('timer-overlay').classList.remove('hidden'); updateTimerDisplay();
+        timerInterval = setInterval(() => { timerSeconds--; if(timerSeconds<=0){ stopTimer(); showToast("⏰ 休息結束！"); if(navigator.vibrate) navigator.vibrate([200,100,200]); } else updateTimerDisplay(); }, 1000);
+    }
+    function stopTimer() { clearInterval(timerInterval); document.getElementById('timer-overlay').classList.add('hidden'); }
+    function adjustTimer(s) { timerSeconds += s; updateTimerDisplay(); }
+    function updateTimerDisplay() { document.getElementById('timer-val').innerText = `${Math.floor(timerSeconds/60).toString().padStart(2,'0')}:${(timerSeconds%60).toString().padStart(2,'0')}`; }
+
+    function renderFilters() { document.getElementById('part-filters').innerHTML = bodyParts.map(p => `<button class="chip ${p===state.filter?'active':''}" onclick="setFilter('${p}')">${p}</button>`).join(''); }
     function renderDropdown() {
-        const select = document.getElementById('exercise-dropdown');
-        const list = state.filter === '全部' ? exerciseDB : exerciseDB.filter(ex => ex.part === state.filter);
-        select.innerHTML = list.map(ex => `<option value="${ex.id}" ${ex.id === state.currentEx.id ? 'selected' : ''}>${ex.name}</option>`).join('');
-        if (list.length > 0 && !list.find(ex => ex.id === state.currentEx.id)) selectExercise(list[0].id);
+        const sel = document.getElementById('exercise-dropdown');
+        const list = state.filter==='全部'?exerciseDB:exerciseDB.filter(e=>e.part===state.filter);
+        sel.innerHTML = list.map(e=>`<option value="${e.id}" ${e.id===state.currentEx.id?'selected':''}>${e.name}</option>`).join('');
+        if(list.length>0 && !list.find(e=>e.id===state.currentEx.id)) selectExercise(list[0].id);
     }
-    function setFilter(part) { state.filter = part; renderFilters(); renderDropdown(); }
-    function selectExercise(id) { state.currentEx = exerciseDB.find(ex => ex.id === id); updateExerciseUI(); }
+    function setFilter(p) { state.filter=p; renderFilters(); renderDropdown(); }
+    function selectExercise(id) { state.currentEx = exerciseDB.find(e=>e.id===id); updateExerciseUI(); }
+    function setSide(s) { state.currentSide = s; document.getElementById('opt-left').className=`side-btn ${s==='Left'?'active L':''}`; document.getElementById('opt-right').className=`side-btn ${s==='Right'?'active R':''}`; }
     function updateExerciseUI() {
-        const { currentEx } = state;
-        document.getElementById('ex-type-badge').innerText = currentEx.type === 'Unilateral' ? '單邊' : '雙邊';
+        const ex = state.currentEx;
+        document.getElementById('ex-type-badge').innerText = ex.type==='Unilateral'?'單邊':'雙邊';
         const sideSel = document.getElementById('side-selector');
-        if (currentEx.type === 'Unilateral') { sideSel.classList.remove('hidden'); if (!state.currentSide) setSide('Left'); } else { sideSel.classList.add('hidden'); state.currentSide = null; }
-        const relatedLogs = state.logs.filter(l => l.exId === currentEx.id);
-        const maxW = relatedLogs.length > 0 ? Math.max(...relatedLogs.map(l => l.weight)) : 0;
-        document.getElementById('pb-display').innerText = maxW > 0 ? `🏆 PB: ${maxW} kg` : `🏆 PB: --`;
+        if(ex.type==='Unilateral') { sideSel.classList.remove('hidden'); if(!state.currentSide) setSide('Left'); } else { sideSel.classList.add('hidden'); state.currentSide=null; }
+        const logs = state.logs.filter(l=>l.exId===ex.id);
+        const max = logs.length>0?Math.max(...logs.map(l=>l.weight)):0;
+        document.getElementById('pb-display').innerText = max>0?`🏆 PB: ${max} kg`:`🏆 PB: --`;
         checkBalance();
     }
-    function setSide(side) {
-        state.currentSide = side;
-        document.getElementById('opt-left').className = `side-btn ${side === 'Left' ? 'active L' : ''}`;
-        document.getElementById('opt-right').className = `side-btn ${side === 'Right' ? 'active R' : ''}`;
-    }
-
     function addLog() {
-        const w = parseFloat(document.getElementById('input-weight').value);
-        const r = parseInt(document.getElementById('input-reps').value);
-        const d = document.getElementById('input-date').value;
-        if (!w || !r || !d) { showToast("請輸入完整數值", "error"); return; }
-        if (state.currentEx.type === 'Unilateral' && !state.currentSide) { showToast("請選擇側邊", "error"); return; }
+        const w=parseFloat(document.getElementById('input-weight').value), r=parseInt(document.getElementById('input-reps').value), d=document.getElementById('input-date').value;
+        if(!w||!r||!d) { showToast("請輸入數值","error"); return; }
+        if(state.currentEx.type==='Unilateral' && !state.currentSide) { showToast("請選擇側邊","error"); return; }
         
-        state.logs.unshift({ id: Date.now(), exId: state.currentEx.id, type: state.currentEx.type, side: state.currentSide, weight: w, reps: r, rpe: parseInt(document.getElementById('input-rpe').value), timestamp: new Date(d).toISOString() });
-        state.logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        state.logs.unshift({id:Date.now(), exId:state.currentEx.id, type:state.currentEx.type, side:state.currentSide, weight:w, reps:r, rpe:document.getElementById('input-rpe').value, timestamp:new Date(d).toISOString()});
+        state.logs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
         localStorage.setItem(DB_KEYS.LOGS, JSON.stringify(state.logs));
+        showToast(`已紀錄 ${w}kg x ${r}`); updateExerciseUI();
+        if(state.currentEx.type==='Unilateral') setSide(state.currentSide==='Left'?'Right':'Left');
         
-        showToast(`已紀錄：${w}kg x ${r}`);
-        updateExerciseUI();
-        
-        if (state.currentEx.type === 'Unilateral') setSide(state.currentSide === 'Left' ? 'Right' : 'Left');
-        
-        // Auto Start Timer
-        startTimer(90);
+        // Use custom timer or default to 90
+        startTimer(state.profile.defaultTimer || 90);
     }
-
     function checkBalance() {
-        const card = document.getElementById('balance-card'); const msg = document.getElementById('balance-msg');
-        if (state.currentEx.type !== 'Unilateral') { card.classList.add('hidden'); return; }
-        const dateStr = document.getElementById('input-date').value;
-        const logs = state.logs.filter(l => l.exId === state.currentEx.id && l.timestamp.startsWith(dateStr));
-        const vL = logs.filter(l => l.side === 'Left').reduce((a,b) => a + (b.weight * b.reps), 0);
-        const vR = logs.filter(l => l.side === 'Right').reduce((a,b) => a + (b.weight * b.reps), 0);
-        if (vL === 0 && vR === 0) { card.classList.add('hidden'); return; }
-        card.classList.remove('hidden');
-        if (Math.abs(vL - vR) < 10) { msg.innerHTML = `🎉 左右平衡！`; card.style.background = "#E8F8F5"; card.style.borderColor = "#A9DFBF"; }
-        else { const diff = Math.abs(vL - vR); const side = vL < vR ? '左側' : '右側'; msg.innerHTML = `⚠️ <b>${side}</b> 落後 ${diff} kg (容量)`; card.style.background = "#FFF8E1"; card.style.borderColor = "#FFE0B2"; }
+        const c=document.getElementById('balance-card'), m=document.getElementById('balance-msg');
+        if(state.currentEx.type!=='Unilateral') { c.classList.add('hidden'); return; }
+        const d=document.getElementById('input-date').value;
+        const l=state.logs.filter(x=>x.exId===state.currentEx.id && x.timestamp.startsWith(d));
+        const vL=l.filter(x=>x.side==='Left').reduce((a,b)=>a+(b.weight*b.reps),0), vR=l.filter(x=>x.side==='Right').reduce((a,b)=>a+(b.weight*b.reps),0);
+        if(vL===0&&vR===0) { c.classList.add('hidden'); return; }
+        c.classList.remove('hidden');
+        if(Math.abs(vL-vR)<10) { m.innerHTML="🎉 左右平衡！"; c.style.background="#E8F8F5"; }
+        else { m.innerHTML=`⚠️ <b>${vL<vR?'左':'右'}側</b> 落後 ${Math.abs(vL-vR)} kg`; c.style.background="#FFF8E1"; }
     }
-
-    /* --- STATS & DATA --- */
     function addBodyLog() {
-        const w = parseFloat(document.getElementById('body-w').value); const d = document.getElementById('body-date').value;
-        if (!w || !d) { showToast("請輸入數值", "error"); return; }
-        state.bodyLogs.push({ date: new Date(d).toISOString(), weight: w });
-        state.bodyLogs.sort((a,b) => new Date(a.date) - new Date(b.date));
+        const w=parseFloat(document.getElementById('body-w').value), d=document.getElementById('body-date').value;
+        if(!w) return;
+        state.bodyLogs.push({date:new Date(d).toISOString(), weight:w});
+        state.bodyLogs.sort((a,b)=>new Date(a.date)-new Date(b.date));
         localStorage.setItem(DB_KEYS.BODY, JSON.stringify(state.bodyLogs));
-        showToast("體重已更新"); renderWeightChart(); document.getElementById('body-w').value = '';
+        showToast("體重已更新"); renderWeightChart();
     }
-    
-    // New Feature: CSV Export
     function exportCSV() {
-        if(state.logs.length === 0) { showToast("沒有資料可匯出", "error"); return; }
-        
-        let csvContent = "\uFEFF"; // BOM for Excel UTF-8
-        csvContent += "Date,Exercise,Part,Type,Side,Weight(kg),Reps,RPE\n";
-        
-        state.logs.forEach(log => {
-            const ex = exerciseDB.find(e => e.id === log.exId) || {name: log.exId, part: '-'};
-            const date = new Date(log.timestamp).toISOString().split('T')[0];
-            const side = log.side || '-';
-            csvContent += `${date},${ex.name},${ex.part},${log.type},${side},${log.weight},${log.reps},${log.rpe}\n`;
-        });
-        
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `gym_data_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast("下載已開始");
+        if(state.logs.length===0) { showToast("無資料","error"); return; }
+        let csv="\uFEFFDate,Exercise,Part,Weight,Reps\n";
+        state.logs.forEach(l=>{ const n=exerciseDB.find(e=>e.id===l.exId)?.name; csv+=`${l.timestamp.split('T')[0]},${n},${exerciseDB.find(e=>e.id===l.exId)?.part},${l.weight},${l.reps}\n`; });
+        const b=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const u=URL.createObjectURL(b);
+        const k=document.createElement("a"); k.href=u; k.download="gym_data.csv"; document.body.appendChild(k); k.click(); document.body.removeChild(k);
     }
-
     function renderWeightChart() {
-        const c = document.getElementById('chart-weight-container'); const data = state.bodyLogs.slice(-10);
-        if (data.length < 2) { c.innerHTML = '<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#ccc;">需兩筆以上資料</div>'; return; }
-        document.getElementById('latest-w').innerText = `${data[data.length-1].weight} kg`;
-        const w = c.offsetWidth; const h = c.offsetHeight; const pad = 30;
-        const vals = data.map(d => d.weight);
-        const min = Math.min(...vals) - 1; const max = Math.max(...vals) + 1;
-        const pts = data.map((d, i) => ({ x: pad + (i/(data.length-1))*(w-pad*2), y: h-pad-((d.weight-min)/(max-min))*(h-pad*2), val: d.weight, date: new Date(d.date) }));
-        let svg = `<svg class="chart-svg" viewBox="0 0 ${w} ${h}"><polyline points="${pts.map(p=>`${p.x},${p.y}`).join(' ')}" fill="none" stroke="#2C3E50" stroke-width="3"/>`;
-        pts.forEach(p => svg += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#fff" stroke="#F39C12" stroke-width="2"/><text x="${p.x}" y="${p.y-12}" text-anchor="middle" font-size="12" fill="#2C3E50" font-weight="bold">${p.val}</text><text x="${p.x}" y="${h-10}" text-anchor="middle" font-size="10" fill="#999">${p.date.getMonth()+1}/${p.date.getDate()}</text>`);
-        c.innerHTML = svg + `</svg>`;
+        const c=document.getElementById('chart-weight-container'), data=state.bodyLogs.slice(-10);
+        if(data.length<2) { c.innerHTML='<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#ccc;">需兩筆以上資料</div>'; return; }
+        const w=c.offsetWidth, h=c.offsetHeight, p=30, vals=data.map(d=>d.weight), min=Math.min(...vals)-1, max=Math.max(...vals)+1;
+        const pts=data.map((d,i)=>({x:p+(i/(data.length-1))*(w-p*2), y:h-p-((d.weight-min)/(max-min))*(h-p*2), v:d.weight}));
+        let s=`<svg class="chart-svg" viewBox="0 0 ${w} ${h}"><polyline points="${pts.map(i=>`${i.x},${i.y}`).join(' ')}" fill="none" stroke="#2C3E50" stroke-width="3"/>`;
+        pts.forEach(i=>s+=`<circle cx="${i.x}" cy="${i.y}" r="4" fill="#fff" stroke="#F39C12" stroke-width="2"/>`);
+        c.innerHTML=s+'</svg>';
     }
-
-    function renderHistoryList() {
-        const list = document.getElementById('history-list'); list.innerHTML = '';
-        if (state.logs.length === 0) { list.innerHTML = '<div style="text-align:center;padding:40px;color:#ccc;">尚無紀錄</div>'; return; }
-        const grp = {}; state.logs.forEach(l => { const k = new Date(l.timestamp).toLocaleDateString(); if(!grp[k]) grp[k]=[]; grp[k].push(l); });
-        Object.keys(grp).forEach(d => {
-            let html = `<div class="history-date">${d}</div><div class="card" style="padding:0; overflow:hidden;">`;
-            grp[d].forEach(l => {
-                const n = exerciseDB.find(e => e.id === l.exId)?.name || l.exId;
-                const s = l.side ? `<div class="log-tag ${l.side==='Left'?'log-l':'log-r'}">${l.side[0]}</div>` : '';
-                html += `<div class="log-item"><div style="display:flex;align-items:center;">${s}<div><div style="font-weight:600;">${n}</div><div style="color:#666;font-size:0.85rem;">${l.weight}kg x ${l.reps}</div></div></div><div style="font-size:0.8rem;color:#aaa;">RPE ${l.rpe}</div></div>`;
-            });
-            list.innerHTML += html + '</div>';
+    function renderHistory() {
+        const l=document.getElementById('history-list'); l.innerHTML='';
+        if(state.logs.length===0) { l.innerHTML='<div style="text-align:center;padding:40px;color:#ccc;">尚無紀錄</div>'; return; }
+        const g={}; state.logs.forEach(x=>{ const d=new Date(x.timestamp).toLocaleDateString(); if(!g[d])g[d]=[]; g[d].push(x); });
+        Object.keys(g).forEach(d=>{
+            let h=`<div class="history-date">${d}</div><div class="card" style="padding:0;overflow:hidden;">`;
+            g[d].forEach(x=>{
+                const n=exerciseDB.find(e=>e.id===x.exId)?.name||x.exId;
+                const s=x.side?`<div style="display:inline-block;width:20px;text-align:center;margin-right:5px;font-size:0.8rem;background:${x.side==='Left'?'#E8F8F5':'#FDEDEC'};color:${x.side==='Left'?'#27AE60':'#E74C3C'};border-radius:4px;">${x.side[0]}</div>`:'';
+                h+=`<div class="log-item"><div>${s}<b>${n}</b></div><div style="color:#666;">${x.weight}kg x ${x.reps}</div></div>`;
+            }); l.innerHTML+=h+'</div>';
         });
     }
-
-    /* --- COMMON --- */
-    function switchView(v) {
-        ['logger','stats','history','profile'].forEach(x => { document.getElementById(`view-${x}`).classList.add('hidden'); document.getElementById(`nav-${x}`).classList.remove('active'); });
-        document.getElementById(`view-${v}`).classList.remove('hidden'); document.getElementById(`view-${v}`).classList.add('fade-in'); document.getElementById(`nav-${v}`).classList.add('active');
-        document.getElementById('page-title').innerText = { logger:'今日訓練', stats:'體重趨勢', history:'歷史日誌', profile:'設定' }[v];
-        if(v === 'history') renderHistoryList(); if(v === 'stats') renderWeightChart();
-    }
-    function loadProfileUI() { document.getElementById('p-name').value = state.profile.name; document.getElementById('greeting-text').innerText = `Let's go, ${state.profile.name}`; }
-    function saveProfile() { state.profile.name = document.getElementById('p-name').value; localStorage.setItem(DB_KEYS.PROFILE, JSON.stringify(state.profile)); loadProfileUI(); showToast("設定已儲存"); }
-    function resetApp() { if(confirm("確定刪除所有資料？")) { localStorage.clear(); location.reload(); } }
-    function setTodayDateInputs() { const t = new Date().toISOString().split('T')[0]; document.getElementById('input-date').value = t; document.getElementById('body-date').value = t; }
+    function switchView(v) { ['logger','stats','history','profile'].forEach(x=>{document.getElementById(`view-${x}`).classList.add('hidden');document.getElementById(`nav-${x}`).classList.remove('active');}); document.getElementById(`view-${v}`).classList.remove('hidden'); document.getElementById(`nav-${v}`).classList.add('active'); if(v==='history')renderHistory(); if(v==='stats')renderWeightChart(); }
     
+    // Updated Profile Logic for Timer
+    function loadProfileUI() { 
+        document.getElementById('p-name').value = state.profile.name; 
+        document.getElementById('p-timer').value = state.profile.defaultTimer || 90; 
+        document.getElementById('greeting-text').innerText = `Let's go, ${state.profile.name}`; 
+    }
+    function saveProfile() { 
+        state.profile.name = document.getElementById('p-name').value;
+        const timerVal = parseInt(document.getElementById('p-timer').value);
+        state.profile.defaultTimer = (timerVal && timerVal > 0) ? timerVal : 90; // Validation
+        
+        localStorage.setItem(DB_KEYS.PROFILE, JSON.stringify(state.profile)); 
+        loadProfileUI(); 
+        showToast("設定已儲存"); 
+    }
+    function resetApp() { if(confirm("確定清空所有資料？")) { localStorage.clear(); location.reload(); } }
+    function setTodayDateInputs() { const t=new Date().toISOString().split('T')[0]; document.getElementById('input-date').value=t; document.getElementById('body-date').value=t; }
     init();
 </script>
 </body>
