@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>My Gym Tracker</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
+
+    <style>
+        :root {
+            --primary: #2C3E50; --accent: #F39C12; --background: #F4F6F8; --white: #FFFFFF;
+            --accent-green: #27AE60; --accent-red: #E74C3C; --text-main: #333333; --text-light: #7F8C8D;
+            --radius: 12px; --shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--background); margin: 0; padding: 0; color: var(--text-main); -webkit-font-smoothing: antialiased; padding-bottom: constant(safe-area-inset-bottom); padding-bottom: env(safe-area-inset-bottom); }
+
+        /* Layout */
+        .app-container { max-width: 480px; margin: 0 auto; background: var(--white); min-height: 100vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.05); overflow-x: hidden; }
+        
+        /* Header */
+        header { padding: 20px; padding-top: max(20px, env(safe-area-inset-top)); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; background: #fff; position: sticky; top: 0; z-index: 10; }
+        h1, h2, h3 { margin: 0; font-weight: 700; }
+        .user-greeting { font-size: 0.8rem; color: var(--text-light); }
+
+        /* Components */
+        .card { background: var(--white); border-radius: var(--radius); padding: 20px; margin: 15px 20px; border: 1px solid #eee; box-shadow: var(--shadow); }
+        .btn-primary { background: var(--primary); color: var(--white); width: 100%; padding: 16px; font-size: 1.1rem; border:none; border-radius:var(--radius); font-weight:600; cursor:pointer;}
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; border:1px solid #ddd; background:transparent;}
+
+        /* Filters (修正版) */
+        .filter-scroll { display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 10px 15px; gap: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; width: 100%; align-items: center; }
+        .filter-scroll::after { content: ''; flex: 0 0 10px; }
+        .filter-scroll::-webkit-scrollbar { display: none; }
+        .filter-btn { flex: 0 0 auto; white-space: nowrap; padding: 8px 16px; border-radius: 20px; background: #eee; color: #666; font-size: 0.9rem; font-weight: 600; border: none; transition: all 0.2s; }
+        .filter-btn.active { background: var(--primary); color: #fff; box-shadow: 0 2px 8px rgba(44, 62, 80, 0.3); }
+
+        /* Inputs */
+        .exercise-select { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: var(--radius); font-size: 1rem; background: #fff; margin-top: 10px; font-weight: bold; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; text-align: center; background: #fff; }
+        
+        /* Side Toggle */
+        .side-toggle { display: flex; background: #eee; border-radius: 8px; padding: 4px; }
+        .side-option { flex: 1; text-align: center; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; color: #888; transition: 0.2s; }
+        .side-option.active-left { background: var(--white); color: var(--accent-green); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .side-option.active-right { background: var(--white); color: var(--accent-red); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .pb-badge { background: #FFF3E0; color: #E67E22; border: 1px solid #FFE0B2; padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Charts & Helpers */
+        .chart-container { margin-top: 20px; position: relative; height: 200px; width: 100%; border-left: 1px solid #eee; border-bottom: 1px solid #eee; }
+        .chart-svg { width: 100%; height: 100%; overflow: visible; }
+        .chart-box { margin-bottom: 10px; }
+        .chart-title { font-size: 1.1rem; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 5px; align-items: center; }
+        .hidden { display: none !important; }
+        .tag-l { background: #E8F8F5; color: var(--accent-green); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-right: 5px;}
+        .tag-r { background: #FDEDEC; color: var(--accent-red); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-right: 5px;}
+
+        /* Bottom Nav */
+        .bottom-nav { margin-top: auto; background: var(--white); border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 15px 0; padding-bottom: max(15px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; z-index: 100;}
+        .nav-item { font-size: 0.8rem; color: var(--text-light); text-align: center; cursor: pointer; padding: 5px; flex: 1; }
+        .nav-item.active { color: var(--primary); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div>
+            <div class="user-greeting">Let's go, <span id="header-name">Champ</span></div>
+            <h1 id="page-title">訓練紀錄</h1>
+        </div>
+        <button class="btn-sm" onclick="switchView('profile')">👤 設定</button>
+    </header>
+
+    <main id="main-content" style="flex: 1; overflow-y: auto;">
+        <div id="view-logger">
+            <div style="background: #fff; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <div class="filter-scroll" id="part-filters"></div>
+                <div style="padding: 0 20px;">
+                    <select id="exercise-dropdown" class="exercise-select" onchange="selectExercise(this.value)"></select>
+                </div>
+            </div>
+            <div class="card" id="input-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span id="ex-type-badge" style="background: #eee; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; color: #555;">...</span>
+                    <span id="pb-display" class="pb-badge">🏆 PB: --</span>
+                </div>
+                <div class="form-group"><label>日期</label><input type="date" id="input-date"></div>
+                <div class="form-group hidden" id="side-selector">
+                    <label>側邊</label>
+                    <div class="side-toggle">
+                        <div class="side-option" id="opt-left" onclick="setSide('Left')">左 (L)</div>
+                        <div class="side-option" id="opt-right" onclick="setSide('Right')">右 (R)</div>
+                    </div>
+                </div>
+                <div class="form-group" style="display: flex; gap: 15px;">
+                    <div style="flex: 1;"><label>重量 (kg)</label><input type="number" id="input-weight" placeholder="0" inputmode="decimal"></div>
+                    <div style="flex: 1;"><label>次數 (Reps)</label><input type="number" id="input-reps" placeholder="0" inputmode="numeric"></div>
+                </div>
+                <div class="form-group">
+                    <label>RPE (費力 1-10): <span id="rpe-val" style="color:var(--primary); font-weight:bold;">7</span></label>
+                    <input type="range" id="input-rpe" min="1" max="10" value="7" oninput="document.getElementById('rpe-val').innerText = this.value" style="width:100%">
+                </div>
+                <button class="btn-primary" onclick="addLog()">✅ 完成這組</button>
+            </div>
+            <div class="card hidden" id="balance-card" style="background: #FFF8E1; border: 1px solid #FFECB3;">
+                <h3 style="font-size: 1rem; color: #F39C12; margin-bottom: 5px;">⚖️ 平衡提示</h3>
+                <p id="balance-msg" style="font-size: 0.9rem; color: #555; margin: 0;">...</p>
+            </div>
+        </div>
+
+        <div id="view-stats" class="hidden">
+            <div class="card" style="background: #F2F4F4;">
+                <h3>⚖️ 記錄體重</h3>
+                <div class="form-group" style="margin-top:10px;"><label>測量日期</label><input type="date" id="body-date"></div>
+                <div class="form-group" style="display:flex; gap: 10px; align-items: flex-end;">
+                    <div style="flex: 1;"><label>體重 (kg)</label><input type="number" id="body-w" placeholder="70.0" style="font-size: 1.2rem; font-weight: bold; color: var(--primary);"></div>
+                    <button class="btn-primary" style="padding:12px; width: 80px;" onclick="addBodyLog()">➕</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chart-box">
+                    <div class="chart-title"><span style="color:#2C3E50;">體重變化</span> <span id="latest-w" style="font-size:1.5rem;">-- kg</span></div>
+                    <div class="chart-container" id="chart-weight"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-history" class="hidden"><div id="history-list"></div></div>
+        <div id="view-profile" class="hidden">
+            <div class="card">
+                <h2>👤 個人資料</h2>
+                <div class="form-group"><label>暱稱</label><input type="text" id="p-name"></div>
+                <button class="btn-primary" onclick="saveProfile()">💾 儲存</button>
+                <button class="btn-sm" style="margin-top:10px; width:100%; color:red; border-color:red;" onclick="resetApp()">⚠️ 重置所有資料</button>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" id="nav-logger" onclick="switchView('logger')">訓練</div>
+        <div class="nav-item" id="nav-stats" onclick="switchView('stats')">體重</div>
+        <div class="nav-item" id="nav-history" onclick="switchView('history')">日誌</div>
+        <div class="nav-item" id="nav-profile" onclick="switchView('profile')">設定</div>
+    </nav>
+</div>
+
+<script>
+    /* Data & State */
+    const exerciseDB = [
+        { id: 'row_db', name: '單臂啞鈴划船', part: '背部', type: 'Unilateral' },
+        { id: 'lat_pull', name: '滑輪下拉', part: '背部', type: 'Bilateral' },
+        { id: 'cable_row', name: '坐姿划船', part: '背部', type: 'Bilateral' },
+        { id: 'pull_up', name: '引體向上 (輔助)', part: '背部', type: 'Bilateral' },
+        { id: 'bench_db', name: '啞鈴臥推', part: '胸部', type: 'Bilateral' },
+        { id: 'inc_bench_db', name: '上胸啞鈴臥推', part: '胸部', type: 'Bilateral' },
+        { id: 'chest_fly', name: '飛鳥', part: '胸部', type: 'Bilateral' },
+        { id: 'push_up', name: '伏地挺身', part: '胸部', type: 'Bilateral' },
+        { id: 'squat_gob', name: '高腳杯深蹲', part: '腿部', type: 'Bilateral' },
+        { id: 'split_squat', name: '保加利亞分腿蹲', part: '腿部', type: 'Unilateral' },
+        { id: 'leg_press', name: '腿推機', part: '腿部', type: 'Bilateral' },
+        { id: 'rdl_db', name: '羅馬尼亞硬舉', part: '腿部', type: 'Bilateral' },
+        { id: 'leg_ext', name: '腿部伸展', part: '腿部', type: 'Bilateral' },
+        { id: 'press_db', name: '啞鈴肩推', part: '肩膀', type: 'Bilateral' },
+        { id: 'lat_raise', name: '啞鈴側平舉', part: '肩膀', type: 'Bilateral' },
+        { id: 'face_pull', name: '臉拉', part: '肩膀', type: 'Bilateral' },
+        { id: 'bicep_curl', name: '二頭彎舉', part: '手臂', type: 'Bilateral' },
+        { id: 'tricep_push', name: '三頭下壓', part: '手臂', type: 'Bilateral' },
+        { id: 'deadbug', name: '死蟲式', part: '核心', type: 'Bilateral' },
+        { id: 'plank', name: '棒式 (秒)', part: '核心', type: 'Bilateral' }
+    ];
+    const bodyParts = ['全部', '背部', '胸部', '腿部', '肩膀', '手臂', '核心'];
+    let logs = JSON.parse(localStorage.getItem('logs_v6')) || [];
+    let bodyLogs = JSON.parse(localStorage.getItem('body_logs_v6')) || []; 
+    let profile = JSON.parse(localStorage.getItem('profile_v6')) || { name: 'Champ' };
+    let currentExercise = exerciseDB[0]; let currentSide = null; let currentFilter = '全部';
+
+    function init() {
+        renderFilters(); renderDropdown(); updateUIForExercise(); loadProfile(); renderWeightChart(); setTodayDate(); switchView('logger');
+    }
+    function setTodayDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('input-date').value = today; document.getElementById('body-date').value = today;
+    }
+    function switchView(viewName) {
+        ['logger', 'stats', 'history', 'profile'].forEach(v => {
+            document.getElementById(`view-${v}`).classList.add('hidden'); document.getElementById(`nav-${v}`).classList.remove('active');
+        });
+        document.getElementById(`view-${viewName}`).classList.remove('hidden'); document.getElementById(`nav-${viewName}`).classList.add('active');
+        const titles = { logger: '訓練紀錄', stats: '體重追蹤', history: '歷史日誌', profile: '設定' };
+        document.getElementById('page-title').innerText = titles[viewName];
+        if (viewName === 'history') renderHistory();
+        if (viewName === 'stats') renderWeightChart();
+    }
+    function renderFilters() {
+        document.getElementById('part-filters').innerHTML = bodyParts.map(part => 
+            `<button class="filter-btn ${part === currentFilter ? 'active' : ''}" onclick="setFilter('${part}')">${part}</button>`
+        ).join('');
+    }
+    function renderDropdown() {
+        const select = document.getElementById('exercise-dropdown');
+        const filtered = currentFilter === '全部' ? exerciseDB : exerciseDB.filter(ex => ex.part === currentFilter);
+        select.innerHTML = filtered.map(ex => `<option value="${ex.id}" ${ex.id === currentExercise.id ? 'selected' : ''}>${ex.name}</option>`).join('');
+        if (filtered.length > 0 && !filtered.find(ex => ex.id === currentExercise.id)) selectExercise(filtered[0].id);
+    }
+    function updateUIForExercise() {
+        document.getElementById('ex-type-badge').innerText = currentExercise.type === 'Unilateral' ? '類型: 單邊' : '類型: 雙邊';
+        const sideSelector = document.getElementById('side-selector');
+        if (currentExercise.type === 'Unilateral') {
+            sideSelector.classList.remove('hidden'); if (!currentSide) setSide('Left');
+        } else {
+            sideSelector.classList.add('hidden'); currentSide = null;
+        }
+        const myLogs = logs.filter(l => l.exId === currentExercise.id);
+        let maxWeight = myLogs.length > 0 ? Math.max(...myLogs.map(l => l.weight)) : 0;
+        document.getElementById('pb-display').innerText = maxWeight > 0 ? `🏆 PB: ${maxWeight} kg` : `🏆 PB: --`;
+        calculateBalance();
+    }
+    function setFilter(part) { currentFilter = part; renderFilters(); renderDropdown(); }
+    function selectExercise(id) { currentExercise = exerciseDB.find(ex => ex.id === id); updateUIForExercise(); }
+    function setSide(side) { 
+        currentSide = side; 
+        document.getElementById('opt-left').className = `side-option ${side === 'Left' ? 'active-left' : ''}`;
+        document.getElementById('opt-right').className = `side-option ${side === 'Right' ? 'active-right' : ''}`;
+    }
+    function addLog() {
+        const w = document.getElementById('input-weight').value; const r = document.getElementById('input-reps').value;
+        const rpe = document.getElementById('input-rpe').value; const dateInput = document.getElementById('input-date').value;
+        if (!w || !r || !dateInput) { alert("請輸入完整數值"); return; }
+        if (currentExercise.type === 'Unilateral' && !currentSide) { alert("請選擇側邊"); return; }
+        logs.unshift({ id: Date.now(), exId: currentExercise.id, type: currentExercise.type, side: currentSide, weight: parseFloat(w), reps: parseInt(r), rpe: parseInt(rpe), timestamp: new Date(dateInput).toISOString() });
+        logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        localStorage.setItem('logs_v6', JSON.stringify(logs));
+        document.getElementById('input-reps').value = '';
+        if (currentExercise.type === 'Unilateral' && currentSide) setSide(currentSide === 'Left' ? 'Right' : 'Left');
+        updateUIForExercise(); alert("紀錄成功");
+    }
+    function calculateBalance() {
+        const card = document.getElementById('balance-card'); const msg = document.getElementById('balance-msg');
+        if (currentExercise.type !== 'Unilateral') { card.classList.add('hidden'); return; }
+        const selectedDateStr = new Date(document.getElementById('input-date').value).toDateString();
+        const todayLogs = logs.filter(l => l.exId === currentExercise.id && new Date(l.timestamp).toDateString() === selectedDateStr);
+        const lVol = todayLogs.filter(l => l.side === 'Left').reduce((a, b) => a + (b.weight * b.reps), 0);
+        const rVol = todayLogs.filter(l => l.side === 'Right').reduce((a, b) => a + (b.weight * b.reps), 0);
+        if (lVol === 0 && rVol === 0) { card.classList.add('hidden'); return; }
+        card.classList.remove('hidden');
+        if (lVol < rVol) { msg.innerHTML = `⚠️ 左側少 ${(rVol-lVol).toFixed(0)} (容量)`; card.style.background = "#FFF8E1"; }
+        else if (rVol < lVol) { msg.innerHTML = `⚠️ 右側少 ${(lVol-rVol).toFixed(0)} (容量)`; card.style.background = "#FFF8E1"; }
+        else { msg.innerHTML = `🎉 平衡！`; card.style.background = "#E8F8F5"; }
+    }
+    function renderHistory() {
+        const list = document.getElementById('history-list'); list.innerHTML = '';
+        if (logs.length === 0) { list.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">無紀錄</div>'; return; }
+        const grouped = logs.reduce((acc, log) => {
+            const d = new Date(log.timestamp); const ds = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+            if (!acc[ds]) acc[ds] = []; acc[ds].push(log); return acc;
+        }, {});
+        Object.keys(grouped).forEach(date => {
+            list.innerHTML += `<div style="background:#eee;padding:5px 15px;font-size:0.8rem;font-weight:bold;margin-top:10px;">${date}</div>`;
+            grouped[date].forEach(log => {
+                const name = exerciseDB.find(e => e.id === log.exId)?.name || log.exId;
+                const s = log.side ? `<span class="${log.side==='Left'?'tag-l':'tag-r'}">${log.side}</span>` : '';
+                list.innerHTML += `<div style="padding:10px 15px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;"><div>${name} ${s} <span style="font-weight:bold;">${log.weight}kg</span> x ${log.reps}</div><div style="color:#999;font-size:0.8rem;">RPE ${log.rpe}</div></div>`;
+            });
+        });
+    }
+    function addBodyLog() {
+        const w = parseFloat(document.getElementById('body-w').value); const dateInput = document.getElementById('body-date').value;
+        if (!w || !dateInput) { alert("請輸入完整數值"); return; }
+        bodyLogs.push({ id: Date.now(), date: new Date(dateInput).toISOString(), weight: w });
+        bodyLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+        localStorage.setItem('body_logs_v6', JSON.stringify(bodyLogs)); renderWeightChart(); document.getElementById('body-w').value = ''; alert("體重已更新");
+    }
+    function renderWeightChart() {
+        const data = bodyLogs.slice(-15);
+        if (data.length === 0) { document.getElementById('chart-weight').innerHTML = '<div style="text-align:center;line-height:200px;color:#ccc;">尚無數據</div>'; return; }
+        document.getElementById('latest-w').innerText = data[data.length - 1].weight + ' kg';
+        drawSVG('chart-weight', data, 'weight', '#2C3E50');
+    }
+    function drawSVG(containerId, data, key, color) {
+        const container = document.getElementById(containerId);
+        const w = container.offsetWidth; const h = container.offsetHeight; const pad = 30;
+        const values = data.map(d => d[key]);
+        let min = Math.min(...values) * 0.99; let max = Math.max(...values) * 1.01; if (min === max) { min -= 0.5; max += 0.5; }
+        const points = data.map((d, i) => {
+            const x = pad + (i / (data.length - 1 || 1)) * (w - pad * 2);
+            const y = h - pad - ((d[key] - min) / (max - min)) * (h - pad * 2);
+            return { x, y, val: d[key], date: new Date(d.date) };
+        });
+        let svgHTML = `<svg class="chart-svg" viewBox="0 0 ${w} ${h}"><line x1="${pad}" y1="${pad}" x2="${w-pad}" y2="${pad}" class="chart-grid" stroke="#eee" stroke-dasharray="4"/><line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" class="chart-grid" stroke="#eee" stroke-dasharray="4"/>`;
+        svgHTML += `<polyline points="${points.map(p => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="${color}" stroke-width="3" />`;
+        points.forEach(p => {
+            svgHTML += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#fff" stroke="${color}" stroke-width="2" /><text x="${p.x}" y="${p.y - 12}" text-anchor="middle" font-size="12" fill="${color}" font-weight="bold">${p.val}</text><text x="${p.x}" y="${h - 5}" text-anchor="middle" font-size="10" fill="#999">${p.date.getMonth()+1}/${p.date.getDate()}</text>`;
+        });
+        container.innerHTML = svgHTML + '</svg>';
+    }
+    function loadProfile() { if(profile.name) document.getElementById('p-name').value = profile.name; document.getElementById('header-name').innerText = profile.name || 'Champ'; }
+    function saveProfile() { profile.name = document.getElementById('p-name').value; localStorage.setItem('profile_v6', JSON.stringify(profile)); document.getElementById('header-name').innerText = profile.name; alert("已儲存"); }
+    function resetApp() { if(confirm("確定清空所有資料？")) { localStorage.clear(); location.reload(); } }
+    init();
+</script>
+</body>
+</html>
